@@ -9,62 +9,70 @@ Webcam Image Classification using a pre-trained customized model and p5.js
 This example uses p5 preload function to create the classifier
 === */
 
-// Classifier Variable
+// Global variable to store the classifier
 let classifier;
-// Model URL
-let imageModelURL = 'https://teachablemachine.withgoogle.com/models/bXy2kDNi/';
 
-// Video
-let video;
-let flippedVideo;
-// To store the classification
-let label = "";
+// Label (start by showing listening)
+let label = "listening";
 
-// Load the model first
+// Teachable Machine model URL:
+let soundModelURL = 'https://teachablemachine.withgoogle.com/models/oDmtRUCKV/model.json';
+
+let languageImage
 function preload() {
-  classifier = ml5.imageClassifier(imageModelURL + 'model.json');
+  // Load the model
+  classifier = ml5.soundClassifier(soundModelURL);
+
+  languageImage = loadImage('/static/Background Noise.png');
 }
 
 function setup() {
-  createCanvas(320, 260);
-  // Create the video
-  video = createCapture(VIDEO);
-  video.size(320, 240);
-  video.hide();
-
-  flippedVideo = ml5.flipImage(video)
+  createCanvas(320, 240);
   // Start classifying
-  classifyVideo();
+  // The sound model will continuously listen to the microphone
+  classifier.classify(gotResult);
 }
 
 function draw() {
   background(0);
-  // Draw the video
-  image(flippedVideo, 0, 0);
-
-  // Draw the label
+  // Draw the label in the canvas
   fill(255);
-  textSize(16);
-  textAlign(CENTER);
-  text(label, width / 2, height - 4);
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  text(label, width / 2, height / 2);
+  image(languageImage, 0, 0, width, height);
 }
 
-// Get a prediction for the current video frame
-function classifyVideo() {
-  flippedVideo = ml5.flipImage(video)
-  classifier.classify(flippedVideo, gotResult);
-}
 
-// When we get a result
+// The model recognizing a sound will trigger this event
 function gotResult(error, results) {
-  // If there is an error
   if (error) {
     console.error(error);
     return;
   }
+
   // The results are in an array ordered by confidence.
   // console.log(results[0]);
   label = results[0].label;
-  // Classifiy again!
-  classifyVideo();
+
+  languageImage = loadImage(`/static/${label}.png`, imageLoaded);
+
+  if (label === "Background Noise") {
+    explanation = "This language does not exist!"
+  }
+  else if (label === "English") {
+
+  }
+
+  else if (label === "Japanese") {
+
+  }
+
+  else if (label === "Spanish") {
+
+  }
+}
+
+function imageLoaded() {
+  redraw(); // Redraw the canvas once the image is loaded
 }
